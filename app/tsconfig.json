@@ -23,6 +23,8 @@
 		"paths": {
 			"@assets/*": ["./src/assets/*"],
 			"@components/*": ["./src/components/*"],
+			"@ui/*": ["./src/components/ui/*"],
+			"@forms/*": ["src/components/forms/*"],
 			"@context/*": ["./src/context/*"],
 			"@hooks/*": ["./src/hooks/*"],
 			"@pages/*": ["./src/pages/*"],
