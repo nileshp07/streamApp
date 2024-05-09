@@ -3,14 +3,12 @@ import Input from "@ui/Input.tsx";
 
 type MeetingFormProps = {
 	tab: number;
+	handleClick: () => void;
 };
 
-const MeetingForm = ({ tab }: MeetingFormProps) => {
+const MeetingForm = ({ tab, handleClick }: MeetingFormProps) => {
 	return (
-		<form
-			method="POST"
-			className="flex flex-col gap-2 items-center justify-center p-12 rounded-2xl shadow-2xl w-1/2 min-h-[60dvh]"
-		>
+		<form className="flex flex-col gap-2 items-center justify-center p-12 rounded-2xl shadow-2xl w-1/2 min-h-[50dvh]">
 			<span className="flex flex-col gap-2 items-center my-6">
 				<h1 className="text-4xl font-medium">
 					<span>{tab === 0 ? "Host" : "Join"}</span> a Meeting
@@ -28,7 +26,10 @@ const MeetingForm = ({ tab }: MeetingFormProps) => {
 				placeholder="Enter Room name"
 				required
 			/>
-			<Button variant={tab === 0 ? "primary" : "secondary"}>
+			<Button
+				onClick={() => handleClick()}
+				variant={tab === 0 ? "primary" : "secondary"}
+			>
 				{tab === 0 ? "Host" : "Join"}
 			</Button>
 		</form>
