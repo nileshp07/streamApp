@@ -1,12 +1,47 @@
 {
-  "name": "api",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+	"name": "api",
+	"version": "1.0.0",
+	"description": "",
+	"main": "./src/server.ts",
+	"scripts": {
+		"start": "nodemon ",
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"@prisma/client": "^5.13.0",
+		"@types/cookie-parser": "^1.4.7",
+		"@types/cors": "^2.8.17",
+		"@types/crypto-js": "^4.2.2",
+		"@types/express": "^4.17.21",
+		"@types/express-rate-limit": "^6.0.0",
+		"@types/jsonwebtoken": "^9.0.6",
+		"@types/node": "^20.12.10",
+		"cookie-parser": "^1.4.6",
+		"cors": "^2.8.5",
+		"crypto-js": "^4.2.0",
+		"express": "^4.19.2",
+		"express-rate-limit": "^7.2.0",
+		"helmet": "^7.1.0",
+		"jsonwebtoken": "^9.0.2",
+		"prisma": "^5.13.0",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.4.5",
+		"zod": "^3.23.6"
+	},
+	"_moduleAliases": {
+		"@controllers": "src/controllers",
+		"@middlewares": "src/middlewares",
+		"@models": "src//models",
+		"@routes": "src/routes",
+		"@utils": "src/utils",
+		"@managers": "src/managers"
+	},
+	"devDependencies": {
+		"@types/module-alias": "^2.0.4",
+		"module-alias": "^2.2.3",
+		"nodemon": "^3.1.0"
+	}
 }
