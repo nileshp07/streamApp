@@ -3,19 +3,16 @@ import {Request, Response} from 'express';
 import {encryptPassword, decryptPassword} from '@managers/passwordManager';
 import {createToken} from '@managers/tokenManager';
 
-import {PrismaClient} from '@prisma/client';
 import {createNewUser, findUserByEmail} from '@utils/prismaQueryFns';
-const prisma = new PrismaClient();
 
 export const register = async (req: Request, res: Response) => {
 	const inputSchema = z.object({
-		firstName: string().min(3, 'Minimum 3 characters required.'),
-		lastName: string().min(3, 'Minimum 3 characters required.'),
-		email: string().email(),
-		password: string().min(
-			8,
-			'Password must be of minimum of 8 characters long.'
-		),
+		firstName: z.string().min(3, 'Minimum 3 characters required.'),
+		lastName: z.string().min(3, 'Minimum 3 characters required.'),
+		email: z.string().email(),
+		password: z
+			.string()
+			.min(8, 'Password must be of minimum of 8 characters long.'),
 	});
 
 	const parsedInput = inputSchema.safeParse(req.body);
