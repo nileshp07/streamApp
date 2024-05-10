@@ -27,7 +27,7 @@ export const verifyUserToken = (
 	next();
 };
 
-export const veryifyUserTokenAndAuthorization = (
+export const verifyUserTokenAndAuthorization = (
 	req: Request,
 	res: Response,
 	next: NextFunction

@@ -4,16 +4,17 @@ import {encryptPassword, decryptPassword} from '@managers/passwordManager';
 import {createToken} from '@managers/tokenManager';
 
 import {PrismaClient} from '@prisma/client';
+import {createNewUser, findUserByEmail} from '@utils/prismaQueryFns';
 const prisma = new PrismaClient();
 
 export const register = async (req: Request, res: Response) => {
 	const inputSchema = z.object({
-		firstName: string().min(3, 'Minimum 3 charcters requried.'),
-		lastName: string().min(3, 'Minimum 3 ch,aracters required.'),
+		firstName: string().min(3, 'Minimum 3 characters required.'),
+		lastName: string().min(3, 'Minimum 3 characters required.'),
 		email: string().email(),
 		password: string().min(
 			8,
-			'Password must be of minimum of 8 charcters long.'
+			'Password must be of minimum of 8 characters long.'
 		),
 	});
 
@@ -26,12 +27,15 @@ export const register = async (req: Request, res: Response) => {
 		});
 	}
 
+	const {
+		firstName,
+		lastName,
+		email,
+		password: inputPassword,
+	} = parsedInput.data;
+
 	try {
-		const existingUser = await prisma.user.findFirst({
-			where: {
-				email: req.body.email,
-			},
-		});
+		const existingUser = await findUserByEmail(email);
 
 		if (existingUser) {
 			return res.status(403).json({
@@ -39,14 +43,13 @@ export const register = async (req: Request, res: Response) => {
 			});
 		}
 
-		const newUser = await prisma.user.create({
-			data: {
-				firstName: req.body.firstName,
-				lastName: req.body.lastName,
-				email: req.body.email,
-				password: encryptPassword(req.body.password),
-			},
-		});
+		const newUser = await createNewUser(
+			firstName,
+			lastName,
+			email,
+			inputPassword,
+			encryptPassword
+		);
 
 		// create jwt token with the newUser id as payload
 		const accessToken = createToken({
@@ -57,13 +60,13 @@ export const register = async (req: Request, res: Response) => {
 		res.cookie('accessToken', accessToken);
 
 		// exclude password field from newUser
-		const {password, ...otherdetails} = newUser;
+		const {password, ...otherDetails} = newUser;
 
 		// send response
 		return res.status(201).json({
 			message: 'Registered Successfully.',
 			token: accessToken,
-			data: otherdetails,
+			data: otherDetails,
 		});
 	} catch (error) {
 		return res.status(500).json({
@@ -87,12 +90,10 @@ export const login = async (req: Request, res: Response) => {
 		});
 	}
 
+	const {email} = parsedInput.data;
+
 	try {
-		const user = await prisma.user.findFirst({
-			where: {
-				email: req.body.email,
-			},
-		});
+		const user = await findUserByEmail(email);
 
 		if (!user) {
 			return res.status(404).json({
@@ -100,7 +101,7 @@ export const login = async (req: Request, res: Response) => {
 			});
 		}
 
-		// decrpting the hashed password stored in the db
+		// decrypting the hashed password stored in the db
 		const decryptedPassword = decryptPassword(user.password);
 
 		if (decryptedPassword != req.body.password) {
@@ -109,7 +110,7 @@ export const login = async (req: Request, res: Response) => {
 			});
 		}
 
-		// Create jwt token with userid as payload
+		// Create jwt token with userId as payload
 		const accessToken = createToken({
 			id: user.id,
 		});
@@ -119,7 +120,7 @@ export const login = async (req: Request, res: Response) => {
 
 		// Send the token as response
 		return res.status(201).json({
-			message: 'Login successfull.',
+			message: 'Login successful.',
 			token: accessToken,
 		});
 	} catch (error) {

@@ -1,19 +1,18 @@
 import {NextFunction, Request, Response} from 'express';
 import {z} from 'zod';
 import {decryptPassword, encryptPassword} from '@managers/passwordManager';
-
-import {PrismaClient} from '@prisma/client';
-const prisma = new PrismaClient();
+import {
+	deleteUserById,
+	findUserById,
+	updateUserById,
+	updateUserPasswordById,
+} from '@utils/prismaQueryFns';
 
 export const deleteUser = async (req: Request, res: Response) => {
 	const userId = req.params.userId;
 
 	try {
-		const existingUser = await prisma.user.findFirst({
-			where: {
-				id: Number(userId),
-			},
-		});
+		const existingUser = await findUserById(userId);
 
 		if (!existingUser) {
 			return res.status(404).json({
@@ -21,11 +20,7 @@ export const deleteUser = async (req: Request, res: Response) => {
 			});
 		}
 
-		await prisma.user.delete({
-			where: {
-				id: Number(userId),
-			},
-		});
+		await deleteUserById(userId);
 
 		return res.status(200).json({
 			message: 'User deleted successfully.',
@@ -58,11 +53,7 @@ export const updateUserPassword = async (req: Request, res: Response) => {
 	const {password, newPassword} = req.body;
 
 	try {
-		const user = await prisma.user.findFirst({
-			where: {
-				id: Number(userId),
-			},
-		});
+		const user = await findUserById(userId);
 
 		if (!user) {
 			return res.status(404).json({
@@ -73,14 +64,7 @@ export const updateUserPassword = async (req: Request, res: Response) => {
 		const originalPassword = decryptPassword(user.password);
 
 		if (password === originalPassword) {
-			await prisma.user.update({
-				where: {
-					id: Number(userId),
-				},
-				data: {
-					password: encryptPassword(newPassword),
-				},
-			});
+			await updateUserPasswordById(userId, encryptPassword, newPassword);
 
 			const {password, ...otherDetails} = user;
 
@@ -126,11 +110,7 @@ export const updateUser = async (
 	const {firstName, lastName, email} = parsedInput.data;
 
 	try {
-		const user = await prisma.user.findFirst({
-			where: {
-				id: Number(userId),
-			},
-		});
+		const user = await findUserById(userId);
 
 		if (!user) {
 			return res.status(404).json({
@@ -138,16 +118,12 @@ export const updateUser = async (
 			});
 		}
 
-		const updatedUser = await prisma.user.update({
-			where: {
-				id: Number(userId),
-			},
-			data: {
-				firstName,
-				lastName,
-				email,
-			},
-		});
+		const updatedUser = await updateUserById(
+			userId,
+			firstName,
+			lastName,
+			email
+		);
 
 		const {password, ...otherDetails} = updatedUser;
 
