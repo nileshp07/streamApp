@@ -35,8 +35,7 @@ export const updateUserPasswordById = (userId: string, newPassword: string) =>
 export const updateUserById = (
 	userId: string,
 	firstName: string | undefined,
-	lastName: string | undefined,
-	email: string | undefined
+	lastName: string | undefined
 ) =>
 	prisma.user.update({
 		where: {
@@ -45,7 +44,6 @@ export const updateUserById = (
 		data: {
 			firstName,
 			lastName,
-			email,
 		},
 	});
 

@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 
 import { decryptPassword, encryptPassword } from "@managers/passwordManager";
 import { updatedUserSchema, updateUserPasswordSchema } from "@schema/user";
@@ -81,11 +81,7 @@ export const updateUserPassword = async (req: Request, res: Response) => {
 	}
 };
 
-export const updateUser = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const updateUser = async (req: Request, res: Response) => {
 	const userId = req.params.userId;
 
 	const parsedInput = updatedUserSchema.safeParse(req.body);
@@ -97,7 +93,7 @@ export const updateUser = async (
 		});
 	}
 
-	const { firstName, lastName, email } = parsedInput.data;
+	const { firstName, lastName } = parsedInput.data;
 
 	try {
 		const user = await findUserById(userId);
@@ -108,12 +104,7 @@ export const updateUser = async (
 			});
 		}
 
-		const updatedUser = await updateUserById(
-			userId,
-			firstName,
-			lastName,
-			email
-		);
+		const updatedUser = await updateUserById(userId, firstName, lastName);
 
 		const { password, ...otherDetails } = updatedUser;
 

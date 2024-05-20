@@ -17,10 +17,9 @@ export const loginUserSchema = z.object({
 export const updatedUserSchema = z.object({
 	firstName: z.union([z.string(), z.undefined()]),
 	lastName: z.union([z.string(), z.undefined()]),
-	email: z.union([z.string().email(), z.undefined()]),
 });
 
 export const updateUserPasswordSchema = z.object({
-	password: z.string(),
+	oldPassword: z.string(),
 	newPassword: z.string(),
 });
