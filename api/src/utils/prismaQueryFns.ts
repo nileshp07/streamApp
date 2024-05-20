@@ -1,58 +1,44 @@
-import {PrismaClient} from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
-type encryptPasswordFnType = (input: string) => string;
-
-export const findUserById = async (userId: string) => {
-	const user = await prisma.user.findFirst({
+export const findUserById = (userId: string) =>
+	prisma.user.findFirst({
 		where: {
 			id: Number(userId),
 		},
 	});
 
-	return user;
-};
-
-export const findUserByEmail = async (email: string) => {
-	const user = await prisma.user.findFirst({
+export const findUserByEmail = (email: string) =>
+	prisma.user.findFirst({
 		where: {
 			email,
 		},
 	});
 
-	return user;
-};
-
-export const deleteUserById = async (userId: string) => {
-	await prisma.user.delete({
+export const deleteUserById = (userId: string) =>
+	prisma.user.delete({
 		where: {
 			id: Number(userId),
 		},
 	});
-};
 
-export const updateUserPasswordById = async (
-	userId: string,
-	encryptPassword: encryptPasswordFnType,
-	newPassword: string
-) => {
-	await prisma.user.update({
+export const updateUserPasswordById = (userId: string, newPassword: string) =>
+	prisma.user.update({
 		where: {
 			id: Number(userId),
 		},
 		data: {
-			password: encryptPassword(newPassword),
+			password: newPassword,
 		},
 	});
-};
 
-export const updateUserById = async (
+export const updateUserById = (
 	userId: string,
 	firstName: string | undefined,
 	lastName: string | undefined,
 	email: string | undefined
-) => {
-	const user = await prisma.user.update({
+) =>
+	prisma.user.update({
 		where: {
 			id: Number(userId),
 		},
@@ -63,24 +49,17 @@ export const updateUserById = async (
 		},
 	});
 
-	return user;
-};
-
-export const createNewUser = async (
+export const createNewUser = (
 	firstName: string,
 	lastName: string,
 	email: string,
-	inputPassword: string,
-	encryptPassword: encryptPasswordFnType
-) => {
-	const newUser = await prisma.user.create({
+	inputPassword: string
+) =>
+	prisma.user.create({
 		data: {
 			firstName,
 			lastName,
 			email,
-			password: encryptPassword(inputPassword),
+			password: inputPassword,
 		},
 	});
-
-	return newUser;
-};

@@ -1,5 +1,6 @@
-import {verifyAuthToken} from '@managers/tokenManager';
-import {Request, Response, NextFunction} from 'express';
+import { NextFunction, Request, Response } from "express";
+
+import { verifyAuthToken } from "@managers/tokenManager";
 
 export const verifyUserToken = (
 	req: Request,
@@ -10,7 +11,7 @@ export const verifyUserToken = (
 
 	if (!userAuthToken) {
 		return res.status(401).json({
-			message: 'NOT AUTHENTICATED.',
+			message: "NOT AUTHENTICATED",
 		});
 	}
 
@@ -18,7 +19,7 @@ export const verifyUserToken = (
 
 	if (!user) {
 		return res.status(403).json({
-			message: 'Invalid Token.',
+			message: "INVALID AUTH-TOKEN",
 		});
 	}
 
@@ -33,12 +34,12 @@ export const verifyUserTokenAndAuthorization = (
 	next: NextFunction
 ) => {
 	verifyUserToken(req, res, () => {
-		if (req.user?.id === Number(req.params.userId)) {
-			next();
-		} else {
+		if (req.user?.id !== Number(req.params.userId)) {
 			return res.status(403).json({
-				message: 'Unauthorized User',
+				message: "UNAUTHORIZED USER",
 			});
 		}
+
+		next();
 	});
 };

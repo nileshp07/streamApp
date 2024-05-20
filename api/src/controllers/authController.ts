@@ -1,25 +1,17 @@
-import {string, z} from 'zod';
-import {Request, Response} from 'express';
-import {encryptPassword, decryptPassword} from '@managers/passwordManager';
-import {createToken} from '@managers/tokenManager';
+import { Request, Response } from "express";
 
-import {createNewUser, findUserByEmail} from '@utils/prismaQueryFns';
+import { decryptPassword, encryptPassword } from "@managers/passwordManager";
+import { createToken } from "@managers/tokenManager";
+
+import { loginUserSchema, registerUserSchema } from "@schema/user";
+import { createNewUser, findUserByEmail } from "@utils/prismaQueryFns";
 
 export const register = async (req: Request, res: Response) => {
-	const inputSchema = z.object({
-		firstName: z.string().min(3, 'Minimum 3 characters required.'),
-		lastName: z.string().min(3, 'Minimum 3 characters required.'),
-		email: z.string().email(),
-		password: z
-			.string()
-			.min(8, 'Password must be of minimum of 8 characters long.'),
-	});
-
-	const parsedInput = inputSchema.safeParse(req.body);
+	const parsedInput = registerUserSchema.safeParse(req.body);
 
 	if (!parsedInput.success) {
-		return res.status(401).json({
-			message: 'Invalid inputs.',
+		return res.status(400).json({
+			message: "INVALID INPUTS",
 			error: parsedInput.error,
 		});
 	}
@@ -36,7 +28,7 @@ export const register = async (req: Request, res: Response) => {
 
 		if (existingUser) {
 			return res.status(403).json({
-				message: 'User with that email already exists.',
+				message: "USER ALREADY EXISTS",
 			});
 		}
 
@@ -44,24 +36,19 @@ export const register = async (req: Request, res: Response) => {
 			firstName,
 			lastName,
 			email,
-			inputPassword,
-			encryptPassword
+			encryptPassword(inputPassword)
 		);
 
-		// create jwt token with the newUser id as payload
 		const accessToken = createToken({
 			id: newUser.id,
 		});
 
-		// Store the token in cookie
-		res.cookie('accessToken', accessToken);
+		res.cookie("accessToken", accessToken);
 
-		// exclude password field from newUser
-		const {password, ...otherDetails} = newUser;
+		const { password, ...otherDetails } = newUser;
 
-		// send response
 		return res.status(201).json({
-			message: 'Registered Successfully.',
+			message: "REGISTERED SUCCESSFULLY",
 			token: accessToken,
 			data: otherDetails,
 		});
@@ -73,51 +60,42 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-	const inputSchema = z.object({
-		email: z.string().email(),
-		password: z.string(),
-	});
-
-	const parsedInput = inputSchema.safeParse(req.body);
+	const parsedInput = loginUserSchema.safeParse(req.body);
 
 	if (!parsedInput.success) {
-		return res.status(401).json({
-			message: 'Invalid inputs.',
+		return res.status(400).json({
+			message: "INVALID INPUTS",
 			error: parsedInput.error,
 		});
 	}
 
-	const {email} = parsedInput.data;
+	const { email } = parsedInput.data;
 
 	try {
 		const user = await findUserByEmail(email);
 
 		if (!user) {
 			return res.status(404).json({
-				message: 'No user found with that email.',
+				message: "USER NOT FOUND",
 			});
 		}
 
-		// decrypting the hashed password stored in the db
 		const decryptedPassword = decryptPassword(user.password);
 
 		if (decryptedPassword != req.body.password) {
 			return res.status(401).json({
-				message: 'Wrong Credentials',
+				message: "INVALID CREDENTIALS",
 			});
 		}
 
-		// Create jwt token with userId as payload
 		const accessToken = createToken({
 			id: user.id,
 		});
 
-		// Store the token in cookie
-		res.cookie('accessToken', accessToken);
+		res.cookie("accessToken", accessToken);
 
-		// Send the token as response
 		return res.status(201).json({
-			message: 'Login successful.',
+			message: "LOGIN SUCCESSFULLY",
 			token: accessToken,
 		});
 	} catch (error) {
@@ -128,7 +106,7 @@ export const login = async (req: Request, res: Response) => {
 };
 
 export const logout = async (req: Request, res: Response) => {
-	return res.clearCookie('accessToken').status(200).json({
-		message: 'Successfully Logged OUT.',
+	return res.clearCookie("accessToken").status(200).json({
+		message: "LOGGED OUT SUCCESSFULLY",
 	});
 };
