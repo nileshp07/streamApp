@@ -6,3 +6,8 @@
 body::-webkit-scrollbar {
 	display: none;
 }
+
+*::selection {
+	background-color: black;
+	color: white;
+}

@@ -36,6 +36,7 @@
 		"@middlewares": "src/middlewares",
 		"@models": "src//models",
 		"@routes": "src/routes",
+		"@schema": "src/schema",
 		"@utils": "src/utils",
 		"@managers": "src/managers"
 	},

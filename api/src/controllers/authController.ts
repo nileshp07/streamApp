@@ -4,16 +4,10 @@ import {encryptPassword, decryptPassword} from '@managers/passwordManager';
 import {createToken} from '@managers/tokenManager';
 
 import {createNewUser, findUserByEmail} from '@utils/prismaQueryFns';
+import {loginUserSchema, registerUserSchema} from '@schema/user';
 
 export const register = async (req: Request, res: Response) => {
-	const inputSchema = z.object({
-		firstName: z.string().min(3, 'Minimum 3 characters required.'),
-		lastName: z.string().min(3, 'Minimum 3 characters required.'),
-		email: z.string().email(),
-		password: z.string().min(8, 'Password must be of minimum of 8 characters long.'),
-	});
-
-	const parsedInput = inputSchema.safeParse(req.body);
+	const parsedInput = registerUserSchema.safeParse(req.body);
 
 	if (!parsedInput.success) {
 		return res.status(401).json({
@@ -33,22 +27,18 @@ export const register = async (req: Request, res: Response) => {
 			});
 		}
 
-		const newUser = await createNewUser(firstName, lastName, email, inputPassword, encryptPassword);
+		const newUser = await createNewUser(firstName, lastName, email, encryptPassword(inputPassword));
 
 		// create jwt token with the newUser id as payload
 		const accessToken = createToken({
 			id: newUser.id,
 		});
 
-		// Store the token in cookie
-		res.cookie('accessToken', accessToken, {
-			domain: 'http://localhost:5173',
-		});
+		res.cookie('accessToken', accessToken);
 
 		// exclude password field from newUser
 		const {password, ...otherDetails} = newUser;
 
-		// send response
 		return res.status(201).json({
 			message: 'Registered Successfully.',
 			token: accessToken,
@@ -63,12 +53,7 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-	const inputSchema = z.object({
-		email: z.string().email(),
-		password: z.string(),
-	});
-
-	const parsedInput = inputSchema.safeParse(req.body);
+	const parsedInput = loginUserSchema.safeParse(req.body);
 
 	if (!parsedInput.success) {
 		return res.status(401).json({
@@ -88,7 +73,6 @@ export const login = async (req: Request, res: Response) => {
 			});
 		}
 
-		// decrypting the hashed password stored in the db
 		const decryptedPassword = decryptPassword(user.password);
 
 		if (decryptedPassword != req.body.password) {
@@ -97,7 +81,6 @@ export const login = async (req: Request, res: Response) => {
 			});
 		}
 
-		// Create jwt token with userId as payload
 		const accessToken = createToken({
 			id: user.id,
 		});
@@ -105,7 +88,6 @@ export const login = async (req: Request, res: Response) => {
 		// Store the token in cookie
 		res.cookie('accessToken', accessToken);
 
-		// Send the token as response
 		return res.status(201).json({
 			message: 'Login successful.',
 			token: accessToken,

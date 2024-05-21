@@ -2,16 +2,16 @@ import {
 	deleteUser,
 	updateUser,
 	updateUserPassword,
-} from '@controllers/userController';
-import {verifyUserTokenAndAuthorization} from '@middlewares/tokenVerification';
-import {Router} from 'express';
+} from "@controllers/userController";
+import { verifyUserTokenAndAuthorization } from "@middlewares/tokenVerification";
+import { Router } from "express";
 
 const router: Router = Router();
 
-router.delete('/:userId', verifyUserTokenAndAuthorization, deleteUser);
-router.put('/:userId', verifyUserTokenAndAuthorization, updateUser);
+router.delete("/:userId", verifyUserTokenAndAuthorization, deleteUser);
+router.put("/:userId", verifyUserTokenAndAuthorization, updateUser);
 router.put(
-	'/changePassword/:userId',
+	"/changePassword/:userId",
 	verifyUserTokenAndAuthorization,
 	updateUserPassword
 );

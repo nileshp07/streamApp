@@ -1,12 +1,13 @@
-import {NextFunction, Request, Response} from 'express';
-import {z} from 'zod';
-import {decryptPassword, encryptPassword} from '@managers/passwordManager';
+import { Request, Response } from "express";
+
+import { decryptPassword, encryptPassword } from "@managers/passwordManager";
+import { updatedUserSchema, updateUserPasswordSchema } from "@schema/user";
 import {
 	deleteUserById,
 	findUserById,
 	updateUserById,
 	updateUserPasswordById,
-} from '@utils/prismaQueryFns';
+} from "@utils/prismaQueryFns";
 
 export const deleteUser = async (req: Request, res: Response) => {
 	const userId = req.params.userId;
@@ -16,17 +17,16 @@ export const deleteUser = async (req: Request, res: Response) => {
 
 		if (!existingUser) {
 			return res.status(404).json({
-				message: 'User Does not exists.',
+				message: "USER NOT FOUND",
 			});
 		}
 
 		await deleteUserById(userId);
 
 		return res.status(200).json({
-			message: 'User deleted successfully.',
+			message: "USER DELETED SUCCESSFULLY",
 		});
 	} catch (error) {
-		console.log(error);
 		return res.status(500).json({
 			error: error,
 		});
@@ -35,104 +35,84 @@ export const deleteUser = async (req: Request, res: Response) => {
 
 export const updateUserPassword = async (req: Request, res: Response) => {
 	const userId = req.params.userId;
+	const { oldPassword, newPassword } = req.body;
 
-	const inputSchema = z.object({
-		password: z.string(),
-		newPassword: z.string(),
-	});
-
-	const parsedInput = inputSchema.safeParse(req.body);
+	const parsedInput = updateUserPasswordSchema.safeParse(req.body);
 
 	if (!parsedInput.success) {
-		return res.status(401).json({
-			message: 'Invalid inputs.',
+		return res.status(400).json({
+			message: "INVALID INPUTS",
 			error: parsedInput.error,
 		});
 	}
-
-	const {password, newPassword} = req.body;
 
 	try {
 		const user = await findUserById(userId);
 
 		if (!user) {
 			return res.status(404).json({
-				message: 'User does not exists.',
+				message: "USER NOT FOUND",
 			});
 		}
 
 		const originalPassword = decryptPassword(user.password);
 
-		if (password === originalPassword) {
-			await updateUserPasswordById(userId, encryptPassword, newPassword);
-
-			const {password, ...otherDetails} = user;
-
-			return res.status(200).json({
-				message: 'Password updated successfully.',
-				data: otherDetails, //excluding password field
-			});
-		} else {
-			return res.status(403).json({
-				message: 'Wrong Credentials',
+		if (oldPassword !== originalPassword) {
+			return res.status(401).json({
+				message: "INVALID CREDENTIALS",
 			});
 		}
+
+		const updatedUser = await updateUserPasswordById(
+			userId,
+			encryptPassword(newPassword)
+		);
+
+		const { password, ...otherDetails } = updatedUser;
+
+		return res.status(200).json({
+			message: "PASSWORD UPDATED SUCCESSFULLY",
+			data: otherDetails,
+		});
 	} catch (error) {
-		console.log(error);
 		return res.status(500).json({
 			error: error,
 		});
 	}
 };
 
-export const updateUser = async (
-	req: Request,
-	res: Response,
-	next: NextFunction
-) => {
+export const updateUser = async (req: Request, res: Response) => {
 	const userId = req.params.userId;
 
-	const inputSchema = z.object({
-		firstName: z.union([z.string(), z.undefined()]),
-		lastName: z.union([z.string(), z.undefined()]),
-		email: z.union([z.string().email(), z.undefined()]),
-	});
-
-	const parsedInput = inputSchema.safeParse(req.body);
+	const parsedInput = updatedUserSchema.safeParse(req.body);
 
 	if (!parsedInput.success) {
-		return res.status(401).json({
-			message: 'Invalid inputs.',
+		return res.status(400).json({
+			message: "INVALID INPUTS",
 			error: parsedInput.error,
 		});
 	}
 
-	const {firstName, lastName, email} = parsedInput.data;
+	const { firstName, lastName } = parsedInput.data;
 
 	try {
 		const user = await findUserById(userId);
 
 		if (!user) {
 			return res.status(404).json({
-				message: 'User does not exists.',
+				message: "USER NOT FOUND",
 			});
 		}
 
-		const updatedUser = await updateUserById(
-			userId,
-			firstName,
-			lastName,
-			email
-		);
+		const updatedUser = await updateUserById(userId, firstName, lastName);
 
-		const {password, ...otherDetails} = updatedUser;
+		const { password, ...otherDetails } = updatedUser;
 
 		return res.status(201).json({
-			message: 'User data updated successfully.',
+			message: "DETAILS UPDATED SUCCESSFULLY",
 			data: otherDetails,
 		});
 	} catch (error) {
-		console.log(error);
 		return res.status(500).json({
 			error: error,
 		});
