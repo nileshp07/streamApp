@@ -10,9 +10,7 @@ export const register = async (req: Request, res: Response) => {
 		firstName: z.string().min(3, 'Minimum 3 characters required.'),
 		lastName: z.string().min(3, 'Minimum 3 characters required.'),
 		email: z.string().email(),
-		password: z
-			.string()
-			.min(8, 'Password must be of minimum of 8 characters long.'),
+		password: z.string().min(8, 'Password must be of minimum of 8 characters long.'),
 	});
 
 	const parsedInput = inputSchema.safeParse(req.body);
@@ -24,12 +22,7 @@ export const register = async (req: Request, res: Response) => {
 		});
 	}
 
-	const {
-		firstName,
-		lastName,
-		email,
-		password: inputPassword,
-	} = parsedInput.data;
+	const {firstName, lastName, email, password: inputPassword} = parsedInput.data;
 
 	try {
 		const existingUser = await findUserByEmail(email);
@@ -40,13 +33,7 @@ export const register = async (req: Request, res: Response) => {
 			});
 		}
 
-		const newUser = await createNewUser(
-			firstName,
-			lastName,
-			email,
-			inputPassword,
-			encryptPassword
-		);
+		const newUser = await createNewUser(firstName, lastName, email, inputPassword, encryptPassword);
 
 		// create jwt token with the newUser id as payload
 		const accessToken = createToken({
@@ -54,7 +41,9 @@ export const register = async (req: Request, res: Response) => {
 		});
 
 		// Store the token in cookie
-		res.cookie('accessToken', accessToken);
+		res.cookie('accessToken', accessToken, {
+			domain: 'http://localhost:5173',
+		});
 
 		// exclude password field from newUser
 		const {password, ...otherDetails} = newUser;
@@ -65,9 +54,10 @@ export const register = async (req: Request, res: Response) => {
 			token: accessToken,
 			data: otherDetails,
 		});
-	} catch (error) {
+	} catch (error: any) {
 		return res.status(500).json({
 			error: error,
+			message: error.response.data.message,
 		});
 	}
 };
